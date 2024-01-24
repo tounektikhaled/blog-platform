@@ -1,0 +1,23 @@
+type User {
+  id: ID!
+  username: String!
+  password: String!
+}
+
+type AuthPayload {
+  user: User!
+  token: String!
+}
+
+type Query {
+  users: [User!]!
+  user(id: ID!): User
+  me: User
+}
+
+type Mutation {
+  createUser(username: String!, password: String!): User
+  updateUser(id: ID!, username: String, password: String): User
+  deleteUser(id: ID!): Boolean
+  loginUser(username: String!, password: String!): AuthPayload
+}
