@@ -59,8 +59,8 @@ cd server
 npm start
 2. Start the client:
 cd client
-npm run serve
-3. Open your browser and visit http://localhost:8080 to view the application.
+npm run dev
+3. Open your browser and visit http://localhost:5173 to view the application.
 
 
 
