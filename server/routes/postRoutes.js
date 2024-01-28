@@ -1,18 +1,12 @@
 const express = require('express');
-const {
-  createPost,
-  updatePost,
-  deletePost,
-  getPosts,
-  getPostById,
-} = require('../resolvers/postResolvers');
+const postResolvers=require('../resolvers/postResolvers');
 
 const router = express.Router();
 
-router.get('/posts', getPosts);
-router.get('/posts/:id', getPostById);
-router.post('/posts', createPost);
-router.put('/posts/:id', updatePost);
-router.delete('/posts/:id', deletePost);
+router.get('/posts', postResolvers.Query.getPosts);
+router.get('/posts/:id', postResolvers.Query.getPostById);
+router.post('/posts', postResolvers.Mutation.createPost);
+router.put('/posts/:id', postResolvers.Mutation.updatePost);
+router.delete('/posts/:id', postResolvers.Mutation.deletePost);
 
 module.exports = router;

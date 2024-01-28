@@ -6,8 +6,8 @@ type Post {
 }
 
 type Query {
-  posts: [Post!]!
-  post(id: ID!): Post
+  getPosts: [Post!]!
+  getPostById(id: ID!): Post
 }
 
 type Mutation {
