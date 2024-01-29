@@ -2,59 +2,144 @@ const UserModel = require('../models/UserModel');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
-async function getUsers() {
+const secret_key = process.env.secret_key;
+
+const getUsers = async () => {
   return await UserModel.find();
 }
 
-async function getUserById(_, { id }) {
-  return await UserModel.findById(id);
-}
+const getUserById = async (_, { id }) => {
+  try {
+    // Find the user by ID
+    const user = await UserModel.findById(id);
 
-async function getMe(_, __, context) {
-  if (!context.user) {
-    throw new Error('Unauthorized');
+    if (!user) {
+      throw new Error(`User with ID ${id} not found`);
+    }
+
+    return user;
+  } catch (error) {
+    console.error(`Error fetching user with ID ${id}:`, error);
+    throw new Error(`Unable to fetch user with ID ${id}`);
   }
-  return await UserModel.findById(context.user.id);
-}
+};
 
-async function createUser(_, { username, password }) {
-  const user = new UserModel({ username, password });
-  return await user.save();
-}
 
-async function updateUser(_, { id, username, password }) {
-  return await UserModel.findByIdAndUpdate(id, { username, password }, { new: true });
-}
+const getMe = async (_, __, context) => {
+  try {
+    // Check if there is an authenticated user in the context
+    if (!context.user) {
+      throw new Error('Unauthorized');
+    }
 
-async function deleteUser(_, { id }) {
-  await UserModel.findByIdAndDelete(id);
-  return true;
-}
+    // Retrieve the authenticated user by their ID
+    const authenticatedUser = await UserModel.findById(context.user.id);
 
-async function loginUser(_, { username, password }) {
-  const user = await UserModel.findOne({ username });
+    if (!authenticatedUser) {
+      throw new Error('Authenticated user not found');
+    }
 
-  if (!user) {
-    throw new Error('Invalid username or password');
+    return authenticatedUser;
+  } catch (error) {
+    console.error('Error fetching authenticated user:', error);
+    throw new Error('Unable to fetch authenticated user');
   }
+};
 
-  const validPassword = await bcrypt.compare(password, user.password);
 
-  if (!validPassword) {
-    throw new Error('Invalid username or password');
+const createUser = async (_, { username, password }) => {
+  try {
+    // Create a new user instance with the provided username and password
+    const user = new UserModel({ username, password });
+
+    // Save the user to the database
+    await user.save();
+
+    // Return the created user
+    return user;
+  } catch (error) {
+    console.error('Error creating user:', error);
+    throw new Error('Unable to create user');
   }
+};
 
-  const token = jwt.sign({ id: user._id, username: user.username }, 'secret_key', { expiresIn: '1h' });
 
-  return { user, token };
-}
+const updateUser = async (_, { id, username, password }) => {
+  try {
+    // Find the user by ID and update their username and password
+    const updatedUser = await UserModel.findByIdAndUpdate(id, { username, password }, { new: true });
+
+    if (!updatedUser) {
+      throw new Error(`User with ID ${id} not found`);
+    }
+
+    return updatedUser;
+  } catch (error) {
+    console.error(`Error updating user with ID ${id}:`, error);
+    throw new Error(`Unable to update user with ID ${id}`);
+  }
+};
+
+
+const deleteUser = async (_, { id }) => {
+  try {
+    // Find the user by ID and delete them
+    const deletedUser = await UserModel.findByIdAndDelete(id);
+
+    if (!deletedUser) {
+      throw new Error(`User with ID ${id} not found`);
+    }
+
+    return true;
+  } catch (error) {
+    console.error(`Error deleting user with ID ${id}:`, error);
+    throw new Error(`Unable to delete user with ID ${id}`);
+  }
+};
+
+const loginUser = async (_, { username, password }) => {
+  try {
+    // Find the user by username
+    const user = await UserModel.findOne({ username });
+
+    // Check if the user exists
+    if (!user) {
+      throw new Error('Invalid username or password');
+    }
+
+    // Compare the provided password with the hashed password in the database
+    const validPassword = await bcrypt.compare(password, user.password);
+
+    // If the password is invalid, throw an error
+    if (!validPassword) {
+      throw new Error('Invalid username or password');
+    }
+
+    // Generate a JWT token for the authenticated user
+    const token = jwt.sign({ id: user._id, username: user.username }, secret_key, { expiresIn: '1h' });
+
+    // Return the user and token
+    return { user, token };
+  } catch (error) {
+    console.error('Error during user login:', error);
+    throw new Error('Unable to login');
+  }
+};
+
 
 module.exports = {
-  getUsers,
-  getUserById,
-  getMe,
-  createUser,
-  updateUser,
-  deleteUser,
-  loginUser,
+  AuthPayload: {
+    loginUser
+  },
+  Query: {
+    getMe,
+    getUsers,
+    getUserById,
+  },
+  Mutation: {
+    createUser,
+    updateUser,
+    deleteUser,
+  }
+
 };

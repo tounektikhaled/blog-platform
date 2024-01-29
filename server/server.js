@@ -7,14 +7,13 @@ const { mergeTypeDefs, mergeResolvers } = require('@graphql-tools/merge');
 const mongoose = require('mongoose');
 const fs = require('fs');
 const path = require('path');
-const authRoutes = require('./routes/authRoutes');
-const userRoutes = require('./routes/userRoutes');
-const postRoutes = require('./routes/postRoutes');
+const jwt = require('jsonwebtoken'); 
+
 
 const cors =require('cors')
 
-const resolvers = require('./resolvers/postResolvers');
 
+const resolvers=require('./resolvers/index')
 
 
 // Read the GraphQL schema file
@@ -43,9 +42,6 @@ app.use(express())
 app.use (express.json())
 app.use(express.json()); // Middleware to parse JSON requests
 
-/*app.use('/auth', authRoutes); // Authentication routes
-app.use('/api/users', userRoutes); // User CRUD routes
-app.use('/api/posts', postRoutes); // Post CRUD routes*/
 
 app.use(cors())
 

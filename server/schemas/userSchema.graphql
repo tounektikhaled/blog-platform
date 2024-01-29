@@ -5,14 +5,14 @@ type User {
 }
 
 type AuthPayload {
-  user: User!
+  loginUser: User!
   token: String!
 }
 
 type Query {
-  users: [User!]!
-  user(id: ID!): User
-  me: User
+  getUsers: [User!]!
+  getUserById(id: ID!): User
+  getMe: User
 }
 
 type Mutation {
