@@ -27,12 +27,12 @@ const getUserById = async (_, { id }) => {
 
 const getMe = async (_, __, context) => {
   try {
-    // Check if there is an authenticated user in the context
+    console.log('Context user:', context.user);
+
     if (!context.user) {
       throw new Error('Unauthorized');
     }
 
-    // Retrieve the authenticated user by their ID
     const authenticatedUser = await UserModel.findById(context.user.id);
 
     if (!authenticatedUser) {
@@ -99,38 +99,34 @@ const deleteUser = async (_, { id }) => {
 
 const loginUser = async (_, { username, password }) => {
   try {
-    // Find the user by username
+    // Find the user in the database
     const user = await UserModel.findOne({ username });
 
     // Check if the user exists
     if (!user) {
-      throw new Error('Invalid username or password');
+      throw new Error('User not found');
     }
 
-    // Compare the provided password with the hashed password in the database
+    // Compare passwords
     const validPassword = await bcrypt.compare(password, user.password);
 
-    // If the password is invalid, throw an error
     if (!validPassword) {
-      throw new Error('Invalid username or password');
+      throw new Error('Invalid password');
     }
 
-    // Generate a JWT token for the authenticated user
+    // Generate and return a JWT token
     const token = jwt.sign({ id: user._id, username: user.username }, secret_key, { expiresIn: '1h' });
 
-    // Return the user and token
+    // Return AuthPayload
     return { user, token };
   } catch (error) {
-    console.error('Error during user login:', error);
-    throw new Error('Unable to login');
+    console.error('Authentication error:', error);
+    throw new Error('Authentication failed');
   }
 };
 
 
 module.exports = {
-  AuthPayload: {
-    loginUser
-  },
   Query: {
     getMe,
     getUsers,
@@ -140,6 +136,7 @@ module.exports = {
     createUser,
     updateUser,
     deleteUser,
+    loginUser,
   }
 
 };
